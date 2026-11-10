@@ -18,8 +18,40 @@ jobs:
     name: SAST (Semgrep)
     runs-on: ubuntu-latest
     steps:
-      - name: Placeholder
-        run: echo "Aquí irá el análisis SAST con Semgrep"
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Semgrep (versión fijada)
+        run: pip install semgrep==1.185.0
+
+      - name: Análisis SAST con Semgrep
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+        run: |
+          semgrep scan --config p/javascript --config p/owasp-top-ten \
+            --json --output semgrep-report.json
+
+      - name: Subir informe de Semgrep
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-report
+          path: semgrep-report.json
+
+      - name: Quality gate SAST (modo aviso)
+        continue-on-error: true
+        run: |
+          N=$(jq '[.results[] | select(.extra.severity | IN("CRITICAL","HIGH","ERROR"))] | length' semgrep-report.json)
+          echo "Hallazgos de severidad critica o alta: $N"
+          if [ "$N" -gt 0 ]; then
+            echo "::warning title=Quality gate SAST::Semgrep ha encontrado $N hallazgos de severidad critica o alta"
+            exit 1
+          fi
 
   sca:
     name: SCA
