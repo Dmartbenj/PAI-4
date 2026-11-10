@@ -1,0 +1,59 @@
+name: DevSecOps Pipeline
+
+# Disparadores: cada push o pull request a main, y lanzamiento manual
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Permisos mínimos del token para todos los jobs
+permissions:
+  contents: read
+
+jobs:
+  # Etapa de build/análisis estático (en paralelo) 
+  sast:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "Aquí irá el análisis SAST con Semgrep"
+
+  sca:
+    name: SCA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "Aquí irá el análisis SCA (parte 2)"
+
+  # Etapa de pruebas: build de la imagen, staging y DAST 
+  build-staging-dast:
+    name: Build, staging y DAST
+    runs-on: ubuntu-latest
+    needs: [sast, sca]
+    steps:
+      - name: Placeholder
+        run: echo "Aquí irán el build, el despliegue en staging y el DAST (parte 3)"
+
+  # Centralización de resultados (se ejecuta siempre) 
+  import-defectdojo:
+    name: Importar informes a DefectDojo
+    runs-on: ubuntu-latest
+    needs: [sast, sca, build-staging-dast]
+    if: always()
+    steps:
+      - name: Placeholder
+        run: echo "Aquí se enviarán los informes a DefectDojo por API (parte 2)"
+
+  # Producción: solo push a main y solo si pasan los gates
+  deploy-produccion:
+    name: Despliegue en producción
+    runs-on: ubuntu-latest
+    needs: [build-staging-dast]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: produccion
+    steps:
+      - name: Placeholder
+        run: echo "Aquí irá el despliegue en producción"
