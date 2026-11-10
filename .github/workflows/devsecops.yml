@@ -13,16 +13,16 @@ permissions:
   contents: read
 
 jobs:
-  # Etapa de build/análisis estático (en paralelo) 
+  # Etapa de build/análisis estático (en paralelo)
   sast:
     name: SAST (Semgrep)
     runs-on: ubuntu-latest
     steps:
       - name: Descargar el código
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Preparar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
 
@@ -30,15 +30,14 @@ jobs:
         run: pip install semgrep==1.185.0
 
       - name: Análisis SAST con Semgrep
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
         run: |
-          semgrep scan --config p/javascript --config p/owasp-top-ten \
+          semgrep scan --config p/javascript --config p/typescript \
+            --config p/nodejsscan --config p/owasp-top-ten \
             --json --output semgrep-report.json
 
       - name: Subir informe de Semgrep
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2        
         with:
           name: semgrep-report
           path: semgrep-report.json
@@ -60,7 +59,7 @@ jobs:
       - name: Placeholder
         run: echo "Aquí irá el análisis SCA (parte 2)"
 
-  # Etapa de pruebas: build de la imagen, staging y DAST 
+  # Etapa de pruebas: build de la imagen, staging y DAST
   build-staging-dast:
     name: Build, staging y DAST
     runs-on: ubuntu-latest
@@ -69,7 +68,7 @@ jobs:
       - name: Placeholder
         run: echo "Aquí irán el build, el despliegue en staging y el DAST (parte 3)"
 
-  # Centralización de resultados (se ejecuta siempre) 
+  # Centralización de resultados (se ejecuta siempre)
   import-defectdojo:
     name: Importar informes a DefectDojo
     runs-on: ubuntu-latest
